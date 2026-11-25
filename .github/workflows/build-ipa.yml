@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -89,3 +93,11 @@ jobs:
           path: out/BiliTranslate.ipa
           retention-days: 30
           if-no-files-found: error
+
+      - name: 发布 Release（仅 tag 触发）
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/BiliTranslate.ipa
+          generate_release_notes: true
+          fail_on_unmatched_files: true
