@@ -27,8 +27,9 @@ jobs:
           ls -la
 
       - name: 编译（未签名）
+        id: build
+        continue-on-error: true
         run: |
-          set -o pipefail
           xcodebuild \
             -project BiliTranslate.xcodeproj \
             -scheme BiliTranslate \
@@ -40,17 +41,32 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" \
             ONLY_ACTIVE_ARCH=NO \
-            build 2>&1 | tail -150
+            build > build.log 2>&1 || true
+          echo "=== error 行 ==="
+          grep -n -i "error:" build.log | head -30 || echo "(无 error)"
+          echo "=== extension 相关构建步骤 ==="
+          grep -n -E "BiliTranslateExtension|ProcessInfoPlistFile" build.log | head -40 || true
 
       - name: 检查产物
+        if: always()
         run: |
-          echo "--- Products ---"
-          find build/Build/Products/Release-iphoneos -maxdepth 2 | head -40
+          echo "=== Products ==="
+          find build/Build/Products/Release-iphoneos -maxdepth 3 | head -60 || true
           APPEX=$(find build/Build/Products/Release-iphoneos -name '*.appex' | head -1)
           echo "APPEX=$APPEX"
-          ls -la "$APPEX" || true
-          echo "--- appex/Resources ---"
-          ls -la "$APPEX/Resources" || true
+          if [ -n "$APPEX" ]; then
+            ls -la "$APPEX"
+            echo "--- appex Info.plist ---"
+            plutil -p "$APPEX/Info.plist" 2>&1 | head -30 || echo "(无法读取)"
+            echo "--- appex/Resources ---"
+            ls -la "$APPEX/Resources" 2>&1 | head -20 || echo "(无 Resources 目录)"
+          fi
+
+      - name: 校验编译结果
+        if: steps.build.outcome != 'success'
+        run: |
+          echo "编译失败，见上面日志"
+          exit 1
 
       - name: 打包 IPA
         run: |

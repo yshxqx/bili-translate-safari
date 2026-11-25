@@ -66,6 +66,7 @@ schemes:
     build:
       targets:
         BiliTranslate: all
+        BiliTranslateExtension: all
     run:
       config: Debug
     archive:
