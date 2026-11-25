@@ -72,6 +72,22 @@ jobs:
           echo "编译失败，见上面日志"
           exit 1
 
+      - name: ad-hoc 签名（补全 Mach-O 签名结构）
+        run: |
+          set -e
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' | head -1)
+          APPEX="$APP/PlugIns/BiliTranslateExtension.appex"
+          echo "APP=$APP"
+          # 先签嵌套的 appex，再签宿主
+          codesign -f -s - --timestamp=none "$APPEX"
+          codesign -f -s - --timestamp=none "$APP"
+          echo "=== 宿主 ==="
+          codesign -dv "$APP" 2>&1 | head -12 || true
+          echo "=== 扩展 ==="
+          codesign -dv "$APPEX" 2>&1 | head -12 || true
+          echo "=== 校验 ==="
+          codesign --verify --deep --verbose=2 "$APP" 2>&1 | tail -8 || true
+
       - name: 打包 IPA
         run: |
           set -e
