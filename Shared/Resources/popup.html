@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B站划词翻译</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; padding: 16px; width: 300px;
+    font: 14px/1.5 -apple-system, "PingFang SC", sans-serif;
+    background: #fff; color: #1a1a1a;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1c1c1e; color: #f2f2f7; }
+    input, select { background: #2c2c2e !important; color: #f2f2f7 !important; border-color: #3a3a3c !important; }
+  }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 14px; font-size: 12px; color: #8e8e93; }
+  label { display: block; font-size: 12px; color: #8e8e93; margin: 12px 0 4px; }
+  input, select {
+    width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 8px;
+    border: 1px solid #d1d1d6; background: #f2f2f7; box-sizing: border-box;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .row { display: flex; gap: 8px; margin-top: 16px; }
+  button {
+    flex: 1; padding: 9px; font-size: 13px; border: 0; border-radius: 8px;
+    background: #00A1D6; color: #fff; font-weight: 600; cursor: pointer;
+  }
+  button.ghost { background: rgba(128,128,128,.16); color: inherit; }
+  button:active { opacity: .75; }
+  #hint { margin-top: 10px; font-size: 12px; min-height: 18px; }
+  .ok { color: #34c759; } .bad { color: #ff453a; }
+  .tip { margin-top: 14px; font-size: 11px; color: #8e8e93; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <h1>B站划词翻译</h1>
+  <p class="sub">选中文字 → 点蓝色「译」气泡</p>
+
+  <label>模型</label>
+  <select id="model">
+    <option value="Index-Translate-9B">Index-Translate-9B（质量最好）</option>
+    <option value="Index-Translate-2B">Index-Translate-2B（更快）</option>
+    <option value="Index-Homura-9B">Index-Homura-9B</option>
+    <option value="Index-Nailong-9B">Index-Nailong-9B</option>
+  </select>
+
+  <label>API 地址</label>
+  <input id="endpoint" spellcheck="false">
+
+  <label>中转地址（可选，412 时填 Worker）</label>
+  <input id="proxy" placeholder="https://xxx.workers.dev" spellcheck="false">
+
+  <div class="row">
+    <button id="save">保存</button>
+    <button id="test" class="ghost">测试</button>
+  </div>
+  <div id="hint"></div>
+
+  <div class="tip">
+    在 Safari 的「扩展」里开启本扩展，并允许访问所有网站。
+    <br>快捷键：Alt+T 译选中内容，Esc 关闭。
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

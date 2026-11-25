@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "B站划词翻译",
+  "version": "1.0.0",
+  "description": "选中即译：外文译中文，中文译英文。走 index-translate 模型，免 key。",
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png",
+    "256": "icon-256.png",
+    "512": "icon-512.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://index-translate.bilibili.com/*"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "B站划词翻译"
+  }
+}

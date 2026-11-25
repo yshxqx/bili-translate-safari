@@ -1,0 +1,75 @@
+name: build-ipa
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 环境信息
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      - name: 生成 Xcode 工程
+        run: |
+          xcodegen generate
+          ls -la
+
+      - name: 编译（未签名）
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BiliTranslate.xcodeproj \
+            -scheme BiliTranslate \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            ONLY_ACTIVE_ARCH=NO \
+            build 2>&1 | tail -150
+
+      - name: 检查产物
+        run: |
+          echo "--- Products ---"
+          find build/Build/Products/Release-iphoneos -maxdepth 2 | head -40
+          APPEX=$(find build/Build/Products/Release-iphoneos -name '*.appex' | head -1)
+          echo "APPEX=$APPEX"
+          ls -la "$APPEX" || true
+          echo "--- appex/Resources ---"
+          ls -la "$APPEX/Resources" || true
+
+      - name: 打包 IPA
+        run: |
+          set -e
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' | head -1)
+          echo "APP=$APP"
+          test -n "$APP" || { echo "没找到 .app"; exit 1; }
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cd out
+          zip -qry BiliTranslate.ipa Payload
+          ls -lh BiliTranslate.ipa
+          echo "--- IPA 目录结构 ---"
+          unzip -l BiliTranslate.ipa | head -40
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiliTranslate-ipa
+          path: out/BiliTranslate.ipa
+          retention-days: 30
+          if-no-files-found: error
